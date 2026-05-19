@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Resmi Rokok Sin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        
+        /* Style Sidebar Keranjang */
+        #cart-sidebar { 
+            position: fixed; right: -100%; top: 0; width: 350px; height: 100%; 
+            background: #fff; box-shadow: -10px 0 30px rgba(0,0,0,0.1); 
+            z-index: 2000; transition: 0.4s; display: flex; flex-direction: column; 
+        }
+        #cart-sidebar.active { right: 0; }
+        @media (max-width: 400px) { #cart-sidebar { width: 100%; } }
+
+        /* Sembunyikan scrollbar kategori geser */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans" x-data="tokoSinApp()">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 @click="page = 'home'" class="text-xl md:text-2xl font-bold text-red-700 tracking-tight cursor-pointer">TOKO<span class="text-gray-900">SIN</span></h1>
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:flex space-x-6 font-medium">
+                    <a @click="page = 'home'" href="#" class="hover:text-red-700">Home</a>
+                    <a @click="page = 'produk'" href="#" class="hover:text-red-700">Produk</a>
+                    <a @click="page = 'tentang'" href="#" class="hover:text-red-700">Tentang Kami</a>
+                </div>
+                <button @click="cartOpen = true" class="relative text-gray-500 hover:text-red-700 p-2">
+                    <i class="fa fa-shopping-bag text-lg"></i>
+                    <span x-show="cart.length > 0" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full" x-text="cart.reduce((a, b) => a + b.qty, 0)"></span>
+                </button>
+                <button @click="loginAdmin()" class="text-gray-500 hover:text-red-700 p-2">
+                    <i class="fa fa-user-shield text-lg"></i>
+                </button>
+            </div>
+        </div>
+        <div class="md:hidden flex justify-around bg-white border-t py-2 text-xs font-bold uppercase text-gray-500">
+            <button @click="page = 'home'" :class="page === 'home' ? 'text-red-700' : ''">Home</button>
+            <button @click="page = 'produk'" :class="page === 'produk' ? 'text-red-700' : ''">Produk</button>
+            <button @click="page = 'tentang'" :class="page === 'tentang' ? 'text-red-700' : ''">Tentang</button>
+        </div>
+    </nav>
+
+    <div id="cart-sidebar" :class="cartOpen ? 'active' : ''" class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold">Keranjang Belanja</h3>
+            <button @click="cartOpen = false" class="text-2xl text-gray-400">&times;</button>
+        </div>
+        <hr class="mb-4">
+        <div class="flex-grow overflow-y-auto">
+            <template x-for="(item, index) in cart" :key="index">
+                <div class="flex items-center gap-3 mb-4 bg-gray-50 p-2 rounded-lg">
+                    <img :src="item.foto || 'https://via.placeholder.com/150?text=Sin'" class="w-12 h-12 object-cover rounded shadow-sm">
+                    <div class="flex-grow">
+                        <p class="text-xs font-bold line-clamp-1" x-text="item.nama + ' (' + item.varian + ')'"></p>
+                        <p class="text-xs text-red-600 font-bold" x-text="formatRupiah(item.hargaTerpilih)"></p>
+                    </div>
+                    <input type="number" x-model.number="item.qty" min="1" class="w-12 p-1 border text-xs rounded text-center">
+                    <button @click="removeFromCart(index)" class="text-red-500 p-1"><i class="fa fa-trash"></i></button>
+                </div>
+            </template>
+            <template x-if="cart.length === 0">
+                <p class="text-center text-gray-400 py-10">Keranjang masih kosong</p>
+            </template>
+        </div>
+        <div class="border-t pt-4">
+            <div class="flex justify-between items-center mb-4">
+                <span class="font-bold">Total:</span>
+                <span class="text-xl font-bold text-red-600" x-text="formatRupiah(cartTotal)"></span>
+            </div>
+            <button @click="checkoutWhatsApp()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mb-2 shadow-lg hover:bg-green-700 transition">CHECKOUT KE WHATSAPP</button>
+            <button @click="cartOpen = false" class="w-full border border-gray-300 py-2 rounded-xl text-sm">KEMBALI BELANJA</button>
+        </div>
+    </div>
+
+    <main>
+        <template x-if="page === 'home'">
+            <div class="overflow-hidden">
+                <section class="bg-gradient-to-r from-red-800 to-red-950 py-10 md:py-16 px-4 text-center text-white">
+                    <h2 class="text-2xl md:text-5xl font-bold mb-4 tracking-wide">Rokok Herbal Sin Official</h2>
+                    <p class="mb-6 md:mb-8 opacity-90 text-sm md:text-base">Temukan varian rokok Sin herbal pilihan Anda di bawah ini</p>
+                    <div class="max-w-xl mx-auto flex shadow-lg rounded-lg overflow-hidden">
+                        <input type="text" x-model="search" placeholder="Cari Sin Sapu Jagat, Krakatau, Platinum..." class="w-full px-4 py-3 text-gray-900 text-sm focus:outline-none">
+                        <button @click="page = 'produk'" class="bg-red-600 px-4 md:px-6 py-3 hover:bg-red-700 transition"><i class="fa fa-search"></i></button>
+                    </div>
+                </section>
+
+                <section class="container mx-auto py-8 md:py-12 px-4">
+                    <h3 class="text-lg font-bold mb-6 border-l-4 border-red-700 pl-3 uppercase tracking-wide">Kategori Variasi</h3>
+                    <div class="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
+                        <template x-for="cat in categories" :key="cat">
+                            <div @click="filterCategory(cat)" 
+                                 class="min-w-[140px] flex-shrink-0 snap-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md cursor-pointer text-center border border-gray-100 transition md:min-w-full">
+                                <i class="fa fa-smoking text-red-600 text-2xl mb-2"></i>
+                                <p class="font-semibold text-sm md:text-base" x-text="cat"></p>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section class="container mx-auto py-4 px-4" x-data="{ 
+                    activeSlide: 1, 
+                    totalSlides: 2, 
+                    init() { 
+                        setInterval(() => { this.activeSlide = this.activeSlide === this.totalSlides ? 1 : this.activeSlide + 1 }, 5000) 
+                    } 
+                }">
+                    <h3 class="text-lg font-bold mb-4 border-l-4 border-gray-900 pl-3 uppercase tracking-wide">Promo Spesial</h3>
+                    <div class="relative w-full aspect-[16/9] md:aspect-video overflow-hidden rounded-2xl shadow-lg bg-gray-200">
+                        <div x-show="activeSlide === 1" x-transition.opacity.duration.500ms class="absolute inset-0">
+                            <img src="banner.png" class="w-full h-full object-cover" alt="Banner 1" onerror="this.src='https://via.placeholder.com/1200x600?text=Promo+Rokok+Sin+1'">
+                        </div>
+                        <div x-show="activeSlide === 2" x-transition.opacity.duration.500ms class="absolute inset-0">
+                            <img src="best-seller.png" class="w-full h-full object-cover" alt="Banner 2" onerror="this.src='https://via.placeholder.com/1200x600?text=Varian+Best+Seller+Sin'">
+                        </div>
+                        <button @click="activeSlide = activeSlide === 1 ? totalSlides : activeSlide - 1" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/50 p-2 md:p-3 rounded-full text-white transition">
+                            <i class="fa fa-chevron-left text-sm md:text-base"></i>
+                        </button>
+                        <button @click="activeSlide = activeSlide === totalSlides ? 1 : activeSlide + 1" class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/50 p-2 md:p-3 rounded-full text-white transition">
+                            <i class="fa fa-chevron-right text-sm md:text-base"></i>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </template>
+
+        <template x-if="page === 'produk'">
+            <section class="container mx-auto py-6 md:py-10 px-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <h2 class="text-2xl font-bold">Katalog Produk Rokok Sin</h2>
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? 'bg-red-700 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium">Semua</button>
+                        <template x-for="cat in categories">
+                            <button @click="selectedCategory = cat" :class="selectedCategory === cat ? 'bg-red-700 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium" x-text="cat"></button>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                    <template x-for="p in filteredProducts" :key="p.firebaseId">
+                        <div @click="openDetail(p)" class="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition flex flex-col cursor-pointer group">
+                            
+                            <div class="h-32 md:h-48 bg-gray-200 relative overflow-hidden">
+                                <img :src="p.foto || 'https://via.placeholder.com/400x300?text=Rokok+Sin'" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <div :class="p.stok === 'Tersedia' ? 'bg-green-500' : 'bg-red-500'" class="absolute top-2 right-2 text-white text-[8px] md:text-[10px] px-1.5 py-0.5 md:px-2 md:py-1 rounded-full uppercase font-bold" x-text="p.stok"></div>
+                            </div>
+                            
+                            <div class="p-3 md:p-4 flex-grow flex flex-col">
+                                <p class="text-[10px] md:text-xs text-red-700 font-bold uppercase mb-1" x-text="p.kategori"></p>
+                                <h4 class="font-bold text-sm md:text-base mb-1 md:mb-2 line-clamp-2 h-10 md:h-12 group-hover:text-red-700 transition" x-text="p.nama"></h4>
+                                
+                                <p class="text-red-600 font-extrabold text-sm md:text-lg mt-auto" 
+                                   x-text="p.listVarian && p.listVarian.length > 0 ? formatRupiah(p.listVarian[0].harga) : formatRupiah(p.harga)"></p>
+                                
+                                <template x-if="p.listVarian && p.listVarian.length > 1">
+                                    <p class="text-[9px] md:text-xs text-gray-400 font-medium mt-0.5" x-text="'+' + (p.listVarian.length - 1) + ' Varian Satuan'"></p>
+                                </template>
+                            </div>
+
+                        </div>
+                    </template>
+                </div>
+            </section>
+        </template>
+
+        <template x-if="page === 'tentang'">
+            <section class="container mx-auto py-10 md:py-16 px-4">
+                <div class="max-w-5xl mx-auto">
+                    <div class="w-full aspect-video rounded-2xl md:rounded-3xl overflow-hidden shadow-xl mb-10">
+                        <img src="logo-toko.jpeg" alt="Toko Sin" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/1000x500?text=Tentang+Toko+Sin'">
+                    </div>
+                    
+                    <div class="text-center max-w-3xl mx-auto">
+                        <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-red-700 uppercase">Dedikasi & Komitmen Kami</h2>
+                        <p class="text-gray-600 leading-relaxed mb-8 text-sm md:text-base">
+                            Selamat datang di Toko Resmi Rokok Herbal Sin. Kami berkomitmen menyediakan varian terlengkap rokok herbal Sin yang diracik dari bahan alami nusantara berkhasiat tinggi secara konsisten dengan pelayanan terpercaya.
+                        </p>
+                        <div class="flex justify-center space-x-8">
+                            <a href="#" class="text-2xl text-pink-600 hover:scale-110 transition-transform"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="text-2xl text-black hover:scale-110 transition-transform"><i class="fab fa-tiktok"></i></a>
+                            <a href="https://wa.me/6285397419715" class="text-2xl text-green-500 hover:scale-110 transition-transform"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </template>
+    </main>
+
+    <div x-show="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-cloak x-transition>
+        <div @click.away="detailModal = false" class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl relative">
+            <button @click="detailModal = false" class="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur rounded-full p-2 shadow-md hover:bg-white transition">
+                <i class="fa fa-times text-gray-800"></i>
+            </button>
+            <div class="h-64 md:h-72 bg-gray-100">
+                <img :src="activeProduct?.foto || 'https://via.placeholder.com/400x300?text=No+Image'" class="w-full h-full object-cover">
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-2xl font-bold uppercase" x-text="activeProduct?.nama"></h3>
+                    <span :class="activeProduct?.stok === 'Tersedia' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="text-[10px] px-2 py-1 rounded-full font-bold border" x-text="activeProduct?.stok"></span>
+                </div>
+
+                <div class="mb-4">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">Pilih Varian Ukuran / Satuan:</p>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="(v, index) in getActiveVarianList()" :key="index">
+                            <button @click="selectVarian(v)" 
+                                    :class="currentVarianName === v.namaVarian ? 'border-red-700 bg-red-50 text-red-700 font-extrabold' : 'border-gray-200 bg-white text-gray-600'" 
+                                    class="py-2 px-4 border-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center min-w-[70px]">
+                                <span class="uppercase" x-text="v.namaVarian"></span>
+                                <span class="text-[10px] font-normal text-gray-500 mt-0.5" x-text="formatRupiah(v.harga)"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <p class="text-3xl font-extrabold text-red-600 mb-4" x-text="formatRupiah(currentVarianHarga)"></p>
+                
+                <div class="bg-gray-50 p-4 rounded-xl mb-6">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Detail Produk:</p>
+                    <p class="text-gray-700 text-sm leading-relaxed" x-text="activeProduct?.detail || 'Tidak ada deskripsi tambahan.'"></p>
+                </div>
+                
+                <template x-if="activeProduct?.stok === 'Tersedia'">
+                    <button @click="addActiveToCart(); detailModal = false" class="block w-full bg-red-700 text-white text-center py-4 rounded-xl font-bold shadow-lg hover:bg-red-800 transition uppercase active:scale-95">
+                        TAMBAH KE KERANJANG
+                    </button>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="adminModal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" x-cloak x-transition>
+        <div class="bg-white p-5 md:p-8 rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-6 sticky top-0 bg-white py-2 z-10 border-b">
+                <h3 class="text-xl md:text-2xl font-bold text-gray-800" x-text="editMode ? 'Edit Produk Sin' : 'Tambah Produk Sin'"></h3>
+                <button @click="closeAdminPanel()" class="text-gray-400 hover:text-red-500 transition text-2xl">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-red-50 p-4 rounded-2xl border border-red-100">
+                <input type="text" x-model="form.nama" placeholder="Nama Varian Sin (Contoh: Sin Sapu Jagat)" class="p-2.5 border rounded-lg md:col-span-2 shadow-xs">
+                
+                <div class="md:col-span-2 bg-white p-4 rounded-xl border border-red-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-xs font-bold text-red-700 uppercase tracking-wide">Pengaturan Varian Satuan & Harga</label>
+                        <button type="button" @click="addFormVarian()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                            <i class="fa fa-plus mr-1"></i> Tambah Kolom Varian
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                        <template x-for="(v, index) in form.listVarian" :key="index">
+                            <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border">
+                                <input type="text" x-model="v.namaVarian" placeholder="Nama Ukuran (misal: bungkus, pak, slop, bal)" class="flex-1 p-2 border rounded-md text-xs uppercase font-semibold">
+                                <input type="number" x-model.number="v.harga" placeholder="Harga (Rp)" class="w-1/3 p-2 border rounded-md text-xs font-bold text-red-600">
+                                <button type="button" @click="removeFormVarian(index)" class="text-red-500 hover:text-red-700 p-1" x-show="form.listVarian.length > 1">
+                                    <i class="fa fa-minus-circle text-lg"></i>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <select x-model="form.kategori" class="p-2.5 border rounded-lg">
+                    <template x-for="cat in categories"><option :value="cat" x-text="cat"></option></template>
+                </select>
+                <select x-model="form.stok" class="p-2.5 border rounded-lg">
+                    <option value="Tersedia">Tersedia</option>
+                    <option value="Habis">Habis</option>
+                </select>
+                <div class="md:col-span-2">
+                    <label class="text-xs font-bold text-red-700 uppercase">Foto Produk</label>
+                    <input type="file" id="admFile" accept="image/*" class="w-full p-2 border rounded-lg bg-white mb-2 text-xs">
+                    <input type="text" x-model="form.foto" placeholder="Atau tempel link foto di sini" class="p-2.5 border rounded-lg text-xs">
+                </div>
+                <textarea x-model="form.detail" rows="2" placeholder="Deskripsi Khasiat & Kandungan Herbal..." class="p-2.5 border rounded-lg md:col-span-2 text-sm"></textarea>
+                <button @click="saveProduct()" class="md:col-span-2 bg-red-700 text-white py-3.5 rounded-xl font-bold shadow-md hover:bg-red-800 transition uppercase tracking-wide" x-text="editMode ? 'UPDATE DATA SEKARANG' : 'SIMPAN KE CLOUD DATABASE'"></button>
+            </div>
+            
+            <div class="table-responsive bg-white rounded-xl border">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-gray-100 border-b text-gray-600 uppercase text-[10px]">
+                            <th class="p-3 text-left">Nama</th>
+                            <th class="p-3 text-left">Varian & Harga Terdaftar</th>
+                            <th class="p-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <template x-for="p in products" :key="p.firebaseId">
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-3 font-semibold text-gray-700 text-xs md:text-sm" x-text="p.nama"></td>
+                                <td class="p-3 text-xs">
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="v in (p.listVarian || [{namaVarian: 'bungkus', harga: p.harga || 0}])">
+                                            <span class="bg-gray-100 border text-gray-600 px-2 py-0.5 rounded font-medium">
+                                                <span class="uppercase font-bold text-red-700" x-text="v.namaVarian"></span>: <span class="text-red-600 font-bold" x-text="formatRupiah(v.harga)"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td class="p-3">
+                                    <div class="flex justify-center space-x-3">
+                                        <button @click="editProduct(p)" class="text-blue-500 p-1"><i class="fa fa-edit text-lg"></i></button>
+                                        <button @click="deleteProduct(p.firebaseId)" class="text-red-500 p-1"><i class="fa fa-trash text-lg"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-xl font-bold text-red-700 mb-6 uppercase tracking-widest">Toko Resmi Sin</h1>
+            <div class="flex justify-center space-x-8 mb-8">
+                <a href="#" class="text-gray-400 hover:text-pink-500 transition text-2xl"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-gray-400 hover:text-black transition text-2xl"><i class="fab fa-tiktok"></i></a>
+                <a href="https://wa.me/6285397419715" class="text-gray-400 hover:text-green-500 transition text-2xl"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            <p class="text-gray-500 text-xs md:text-sm">© 2026 Katalog Toko Sin Herbal. Modern Shopping Experience.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Kredensial Firebase Proyek Toko-Sin Baru Anda
+        const firebaseConfig = {
+          apiKey: "AIzaSyAKbysCa5tOgnN4fr99YKBkAmcLwzOgn4Q",
+          authDomain: "toko-sin.firebaseapp.com",
+          databaseURL: "https://toko-sin-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "toko-sin",
+          storageBucket: "toko-sin.firebasestorage.app",
+          messagingSenderId: "730575620129",
+          appId: "1:730575620129:web:ebf4af972453b979f57b60",
+          measurementId: "G-B1QDPW5C2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function tokoSinApp() {
+            return {
+                page: 'home',
+                search: '',
+                selectedCategory: 'Semua',
+                detailModal: false,
+                adminModal: false,
+                cartOpen: false,
+                activeProduct: null,
+                editMode: false,
+                
+                currentVarianName: 'bungkus',
+                currentVarianHarga: 0,
+
+                categories: ['Sin Kretek', 'Sin Filter', 'Sin Cerutu', 'Sin Premium', 'Paket Agen'],
+                products: [],
+                cart: [],
+                
+                form: { nama: '', kategori: 'Sin Kretek', stok: 'Tersedia', detail: '', foto: '', listVarian: [{namaVarian: 'bungkus', harga: ''}] },
+
+                init() {
+                    db.ref('produk').on('value', (snap) => {
+                        const val = snap.val();
+                        this.products = val ? Object.keys(val).map(k => ({ firebaseId: k, ...val[k] })) : [];
+                    });
+                },
+
+                addFormVarian() {
+                    this.form.listVarian.push({ namaVarian: '', harga: '' });
+                },
+
+                removeFormVarian(index) {
+                    this.form.listVarian.splice(index, 1);
+                },
+
+                getActiveVarianList() {
+                    if (this.activeProduct && this.activeProduct.listVarian && this.activeProduct.listVarian.length > 0) {
+                        return this.activeProduct.listVarian;
+                    }
+                    if (this.activeProduct) {
+                        return [{ namaVarian: 'bungkus', harga: this.activeProduct.harga || 0 }];
+                    }
+                    return [];
+                },
+
+                selectVarian(varianObj) {
+                    this.currentVarianName = varianObj.namaVarian;
+                    this.currentVarianHarga = varianObj.harga;
+                },
+
+                addActiveToCart() {
+                    if(this.activeProduct.stok === 'Habis') return alert("Stok sedang kosong!");
+                    
+                    const itemKey = this.activeProduct.firebaseId + '-' + this.currentVarianName;
+                    const exist = this.cart.find(item => item.cartId === itemKey);
+                    
+                    if(exist) {
+                        exist.qty++;
+                    } else {
+                        this.cart.push({
+                            ...this.activeProduct,
+                            cartId: itemKey,
+                            varian: this.currentVarianName,
+                            hargaTerpilih: this.currentVarianHarga,
+                            qty: 1
+                        });
+                    }
+                    alert("Berhasil masuk keranjang belanja!");
+                },
+
+                removeFromCart(index) {
+                    this.cart.splice(index, 1);
+                },
+
+                get cartTotal() {
+                    return this.cart.reduce((total, item) => total + (item.hargaTerpilih * item.qty), 0);
+                },
+
+                checkoutWhatsApp() {
+                    if(this.cart.length === 0) return alert("Keranjang masih kosong");
+                    let pesan = "Halo Toko Sin, saya ingin memesan produk herbal berikut:\n\n";
+                    this.cart.forEach(item => {
+                        pesan += `- ${item.nama} [Varian: ${item.varian.toUpperCase()}] (${item.qty}x) = ${this.formatRupiah(item.hargaTerpilih * item.qty)}\n`;
+                    });
+                    pesan += `\nTotal Keseluruhan: ${this.formatRupiah(this.cartTotal)}`;
+                    window.open(`https://wa.me/6285397419715?text=${encodeURIComponent(pesan)}`);
+                },
+
+                loginAdmin() {
+                    let password = prompt("Masukkan Kata Sandi Admin Toko Sin:");
+                    if (password === "rokoherbal") {
+                        this.adminModal = true;
+                    } else if (password !== null) {
+                        alert("Kata sandi salah!");
+                    }
+                },
+
+                saveProduct() {
+                    if (!this.form.nama) return alert("Nama produk wajib diisi!");
+                    if (!this.form.listVarian || this.form.listVarian.length === 0 || !this.form.listVarian[0].harga) {
+                        return alert("Minimal isi 1 Varian Utama beserta Harganya!");
+                    }
+                    
+                    const fileInput = document.getElementById('admFile');
+                    const upload = (img) => {
+                        if (img) this.form.foto = img;
+                        if (this.editMode) {
+                            db.ref('produk/' + this.form.firebaseId).update(this.form);
+                        } else {
+                            db.ref('produk').push(this.form);
+                        }
+                        this.closeAdminPanel();
+                        alert("Berhasil disimpan!");
+                    };
+
+                    if (fileInput && fileInput.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => upload(e.target.result);
+                        reader.readAsDataURL(fileInput.files[0]);
+                    } else {
+                        upload(this.form.foto);
+                    }
+                },
+
+                editProduct(p) {
+                    this.editMode = true;
+                    let parsedVarian = p.listVarian ? [...p.listVarian] : [{ namaVarian: 'bungkus', harga: p.harga || '' }];
+                    
+                    this.form = { 
+                        nama: p.nama || '',
+                        kategori: p.kategori || 'Sin Kretek',
+                        stok: p.stok || 'Tersedia',
+                        detail: p.detail || '',
+                        foto: p.foto || '',
+                        listVarian: parsedVarian,
+                        firebaseId: p.firebaseId
+                    };
+                    document.querySelector('[x-show="adminModal"] .overflow-y-auto').scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                deleteProduct(fId) {
+                    if (confirm('Hapus produk Sin ini?')) db.ref('produk/' + fId).remove();
+                },
+
+                closeAdminPanel() { this.adminModal = false; this.resetForm(); },
+                resetForm() {
+                    this.form = { nama: '', kategori: 'Sin Kretek', stok: 'Tersedia', detail: '', foto: '', listVarian: [{namaVarian: 'bungkus', harga: ''}] };
+                    this.editMode = false;
+                    if(document.getElementById('admFile')) document.getElementById('admFile').value = "";
+                },
+
+                get filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchSearch = p.nama.toLowerCase().includes(this.search.toLowerCase());
+                        const matchCat = this.selectedCategory === 'Semua' || p.kategori === this.selectedCategory;
+                        return matchSearch && matchCat;
+                    });
+                },
+
+                filterCategory(cat) { this.selectedCategory = cat; this.page = 'produk'; },
+                
+                openDetail(p) { 
+                    this.activeProduct = p;
+                    let vList = this.getActiveVarianList();
+                    if(vList.length > 0) {
+                        this.currentVarianName = vList[0].namaVarian;
+                        this.currentVarianHarga = vList[0].harga;
+                    }
+                    this.detailModal = true; 
+                },
+                formatRupiah(num) { return 'Rp ' + (num ? parseInt(num).toLocaleString('id-ID') : '0'); }
+            }
+        }
+    </script>
+</body>
+</html>
