@@ -33,26 +33,26 @@
 
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 @click="page = 'home'" class="text-xl md:text-2xl font-bold text-red-700 tracking-tight cursor-pointer">TOKO<span class="text-gray-900">SIN</span></h1>
+            <h1 @click="page = 'home'" class="text-xl md:text-2xl font-bold text-emerald-500 tracking-tight cursor-pointer">TOKO<span class="text-gray-900">SIN</span></h1>
             <div class="flex items-center space-x-4">
                 <div class="hidden md:flex space-x-6 font-medium">
-                    <a @click="page = 'home'" href="#" class="hover:text-red-700">Home</a>
-                    <a @click="page = 'produk'" href="#" class="hover:text-red-700">Produk</a>
-                    <a @click="page = 'tentang'" href="#" class="hover:text-red-700">Tentang Kami</a>
+                    <a @click="page = 'home'" href="#" class="hover:text-emerald-500 transition-colors">Home</a>
+                    <a @click="page = 'produk'" href="#" class="hover:text-emerald-500 transition-colors">Produk</a>
+                    <a @click="page = 'tentang'" href="#" class="hover:text-emerald-500 transition-colors">Tentang Kami</a>
                 </div>
-                <button @click="cartOpen = true" class="relative text-gray-500 hover:text-red-700 p-2">
+                <button @click="cartOpen = true" class="relative text-gray-500 hover:text-emerald-500 p-2 transition-colors">
                     <i class="fa fa-shopping-bag text-lg"></i>
-                    <span x-show="cart.length > 0" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full" x-text="cart.reduce((a, b) => a + b.qty, 0)"></span>
+                    <span x-show="cart.length > 0" class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] px-1.5 py-0.5 rounded-full" x-text="cart.reduce((a, b) => a + b.qty, 0)"></span>
                 </button>
-                <button @click="loginAdmin()" class="text-gray-500 hover:text-red-700 p-2">
+                <button @click="loginAdmin()" class="text-gray-500 hover:text-emerald-500 p-2 transition-colors">
                     <i class="fa fa-user-shield text-lg"></i>
                 </button>
             </div>
         </div>
         <div class="md:hidden flex justify-around bg-white border-t py-2 text-xs font-bold uppercase text-gray-500">
-            <button @click="page = 'home'" :class="page === 'home' ? 'text-red-700' : ''">Home</button>
-            <button @click="page = 'produk'" :class="page === 'produk' ? 'text-red-700' : ''">Produk</button>
-            <button @click="page = 'tentang'" :class="page === 'tentang' ? 'text-red-700' : ''">Tentang</button>
+            <button @click="page = 'home'" :class="page === 'home' ? 'text-emerald-500' : ''">Home</button>
+            <button @click="page = 'produk'" :class="page === 'produk' ? 'text-emerald-500' : ''">Produk</button>
+            <button @click="page = 'tentang'" :class="page === 'tentang' ? 'text-emerald-500' : ''">Tentang</button>
         </div>
     </nav>
 
@@ -68,7 +68,7 @@
                     <img :src="item.foto || 'https://via.placeholder.com/150?text=Sin'" class="w-12 h-12 object-cover rounded shadow-sm">
                     <div class="flex-grow">
                         <p class="text-xs font-bold line-clamp-1" x-text="item.nama + ' (' + item.varian + ')'"></p>
-                        <p class="text-xs text-red-600 font-bold" x-text="formatRupiah(item.hargaTerpilih)"></p>
+                        <p class="text-xs text-emerald-500 font-bold" x-text="formatRupiah(item.hargaTerpilih)"></p>
                     </div>
                     <input type="number" x-model.number="item.qty" min="1" class="w-12 p-1 border text-xs rounded text-center">
                     <button @click="removeFromCart(index)" class="text-red-500 p-1"><i class="fa fa-trash"></i></button>
@@ -81,7 +81,7 @@
         <div class="border-t pt-4">
             <div class="flex justify-between items-center mb-4">
                 <span class="font-bold">Total:</span>
-                <span class="text-xl font-bold text-red-600" x-text="formatRupiah(cartTotal)"></span>
+                <span class="text-xl font-bold text-emerald-500" x-text="formatRupiah(cartTotal)"></span>
             </div>
             <button @click="checkoutWhatsApp()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold mb-2 shadow-lg hover:bg-green-700 transition">CHECKOUT KE WHATSAPP</button>
             <button @click="cartOpen = false" class="w-full border border-gray-300 py-2 rounded-xl text-sm">KEMBALI BELANJA</button>
@@ -91,33 +91,32 @@
     <main>
         <template x-if="page === 'home'">
             <div class="overflow-hidden">
-                <section class="bg-gradient-to-r from-red-800 to-red-950 py-10 md:py-16 px-4 text-center text-white">
-                    <h2 class="text-2xl md:text-5xl font-bold mb-4 tracking-wide">Rokok Herbal Sin Official</h2>
+                <section class="bg-gradient-to-r from-emerald-500 via-neutral-900 to-black py-10 md:py-16 px-4 text-center text-white">
+                    <h2 class="text-2xl md:text-5xl font-bold mb-4 tracking-wide text-white">Rokok Herbal Sin Official</h2>
                     <p class="mb-6 md:mb-8 opacity-90 text-sm md:text-base">Temukan varian rokok Sin herbal pilihan Anda di bawah ini</p>
                     <div class="max-w-xl mx-auto flex shadow-lg rounded-lg overflow-hidden">
                         <input type="text" x-model="search" placeholder="Cari Sin Sapu Jagat, Krakatau, Platinum..." class="w-full px-4 py-3 text-gray-900 text-sm focus:outline-none">
-                        <button @click="page = 'produk'" class="bg-red-600 px-4 md:px-6 py-3 hover:bg-red-700 transition"><i class="fa fa-search"></i></button>
+                        <button @click="page = 'produk'" class="bg-emerald-500 px-4 md:px-6 py-3 hover:bg-emerald-600 text-white transition"><i class="fa fa-search"></i></button>
                     </div>
                 </section>
 
                 <section class="container mx-auto py-8 md:py-12 px-4">
-                    <h3 class="text-lg font-bold mb-6 border-l-4 border-red-700 pl-3 uppercase tracking-wide">Kategori Variasi</h3>
-                    <div class="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
+                    <h3 class="text-lg font-bold mb-6 border-l-4 border-emerald-500 pl-3 uppercase tracking-wide">Kategori Variasi</h3>
+                    <div class="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-5 md:overflow-visible md:pb-0">
                         <template x-for="cat in categories" :key="cat">
                             <div @click="filterCategory(cat)" 
                                  class="min-w-[140px] flex-shrink-0 snap-center bg-white p-6 rounded-xl shadow-sm hover:shadow-md cursor-pointer text-center border border-gray-100 transition md:min-w-full">
-                                <i class="fa fa-smoking text-red-600 text-2xl mb-2"></i>
+                                <i class="fa fa-smoking text-emerald-500 text-2xl mb-2"></i>
                                 <p class="font-semibold text-sm md:text-base" x-text="cat"></p>
                             </div>
                         </template>
                     </div>
                 </section>
 
-                <!-- BAGIAN BANNER PROMO (Satu Foto Statis) -->
                 <section class="container mx-auto py-4 px-4">
-                    <h3 class="text-lg font-bold mb-4 border-l-4 border-gray-900 pl-3 uppercase tracking-wide">Promo Spesial</h3>
+                    <h3 class="text-lg font-bold mb-4 border-l-4 border-gray-900 pl-3 uppercase tracking-wide"></h3>
                     <div class="relative w-full aspect-[16/9] md:aspect-video overflow-hidden rounded-2xl shadow-lg bg-gray-200">
-                        <img src="banner-sin.png" class="w-full h-full object-cover" alt="Promo Spesial Rokok Sin" onerror="this.src='https://via.placeholder.com/1200x600?text=Promo+Rokok+Sin+Herbal'">
+                        <img src="banner-sin.png" class="w-full h-full object-cover" alt="Banner Promo" onerror="this.src='https://via.placeholder.com/1200x600?text=Promo+Rokok+Sin+Herbal'">
                     </div>
                 </section>
             </div>
@@ -128,9 +127,9 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <h2 class="text-2xl font-bold">Katalog Produk Rokok Sin</h2>
                     <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                        <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? 'bg-red-700 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium">Semua</button>
+                        <button @click="selectedCategory = 'Semua'" :class="selectedCategory === 'Semua' ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium">Semua</button>
                         <template x-for="cat in categories">
-                            <button @click="selectedCategory = cat" :class="selectedCategory === cat ? 'bg-red-700 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium" x-text="cat"></button>
+                            <button @click="selectedCategory = cat" :class="selectedCategory === cat ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border'" class="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium" x-text="cat"></button>
                         </template>
                     </div>
                 </div>
@@ -145,10 +144,10 @@
                             </div>
                             
                             <div class="p-3 md:p-4 flex-grow flex flex-col">
-                                <p class="text-[10px] md:text-xs text-red-700 font-bold uppercase mb-1" x-text="p.kategori"></p>
-                                <h4 class="font-bold text-sm md:text-base mb-1 md:mb-2 line-clamp-2 h-10 md:h-12 group-hover:text-red-700 transition" x-text="p.nama"></h4>
+                                <p class="text-[10px] md:text-xs text-emerald-500 font-bold uppercase mb-1" x-text="p.kategori"></p>
+                                <h4 class="font-bold text-sm md:text-base mb-1 md:mb-2 line-clamp-2 h-10 md:h-12 group-hover:text-emerald-500 transition" x-text="p.nama"></h4>
                                 
-                                <p class="text-red-600 font-extrabold text-sm md:text-lg mt-auto" 
+                                <p class="text-emerald-500 font-extrabold text-sm md:text-lg mt-auto" 
                                    x-text="p.listVarian && p.listVarian.length > 0 ? formatRupiah(p.listVarian[0].harga) : formatRupiah(p.harga)"></p>
                                 
                                 <template x-if="p.listVarian && p.listVarian.length > 1">
@@ -166,18 +165,18 @@
             <section class="container mx-auto py-10 md:py-16 px-4">
                 <div class="max-w-5xl mx-auto">
                     <div class="w-full aspect-video rounded-2xl md:rounded-3xl overflow-hidden shadow-xl mb-10">
-                        <img src="logo-toko.jpeg" alt="Toko Sin" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/1000x500?text=Tentang+Toko+Sin'">
+                        <img src="tentang-kami.png" alt="Toko Sin" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/1000x500?text=Tentang+Toko+Sin'">
                     </div>
                     
                     <div class="text-center max-w-3xl mx-auto">
-                        <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-red-700 uppercase">Dedikasi & Komitmen Kami</h2>
+                        <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-emerald-500 uppercase">Dedikasi & Komitmen Kami</h2>
                         <p class="text-gray-600 leading-relaxed mb-8 text-sm md:text-base">
                             Selamat datang di Toko Resmi Rokok Herbal Sin. Kami berkomitmen menyediakan varian terlengkap rokok herbal Sin yang diracik dari bahan alami nusantara berkhasiat tinggi secara konsisten dengan pelayanan terpercaya.
                         </p>
                         <div class="flex justify-center space-x-8">
-                            <a href="#" class="text-2xl text-pink-600 hover:scale-110 transition-transform"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="text-2xl text-black hover:scale-110 transition-transform"><i class="fab fa-tiktok"></i></a>
-                            <a href="https://wa.me/6285397419715" class="text-2xl text-green-500 hover:scale-110 transition-transform"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://www.instagram.com/sinnusantara?igsh=bmhyaWwyY2dka3Bs" class="text-2xl text-pink-600 hover:scale-110 transition-transform"><i class="fab fa-instagram"></i></a>
+                            <a href="https://www.tiktok.com/@sinnusantara?_r=1&_t=ZS-96aoRJ0a2Fd" class="text-2xl text-black hover:scale-110 transition-transform"><i class="fab fa-tiktok"></i></a>
+                            <a href="https://wa.me/6281286991431" class="text-2xl text-green-500 hover:scale-110 transition-transform"><i class="fab fa-whatsapp"></i></a>
                         </div>
                     </div>
                 </div>
@@ -204,7 +203,7 @@
                     <div class="flex flex-wrap gap-2">
                         <template x-for="(v, index) in getActiveVarianList()" :key="index">
                             <button @click="selectVarian(v)" 
-                                    :class="currentVarianName === v.namaVarian ? 'border-red-700 bg-red-50 text-red-700 font-extrabold' : 'border-gray-200 bg-white text-gray-600'" 
+                                    :class="currentVarianName === v.namaVarian ? 'border-emerald-500 bg-emerald-50 text-emerald-500 font-extrabold' : 'border-gray-200 bg-white text-gray-600'" 
                                     class="py-2 px-4 border-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center min-w-[70px]">
                                 <span class="uppercase" x-text="v.namaVarian"></span>
                                 <span class="text-[10px] font-normal text-gray-500 mt-0.5" x-text="formatRupiah(v.harga)"></span>
@@ -213,7 +212,7 @@
                     </div>
                 </div>
 
-                <p class="text-3xl font-extrabold text-red-600 mb-4" x-text="formatRupiah(currentVarianHarga)"></p>
+                <p class="text-3xl font-extrabold text-emerald-500 mb-4" x-text="formatRupiah(currentVarianHarga)"></p>
                 
                 <div class="bg-gray-50 p-4 rounded-xl mb-6">
                     <p class="text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Detail Produk:</p>
@@ -221,7 +220,7 @@
                 </div>
                 
                 <template x-if="activeProduct?.stok === 'Tersedia'">
-                    <button @click="addActiveToCart(); detailModal = false" class="block w-full bg-red-700 text-white text-center py-4 rounded-xl font-bold shadow-lg hover:bg-red-800 transition uppercase active:scale-95">
+                    <button @click="addActiveToCart(); detailModal = false" class="block w-full bg-emerald-500 text-white text-center py-4 rounded-xl font-bold shadow-lg hover:bg-emerald-600 transition uppercase active:scale-95">
                         TAMBAH KE KERANJANG
                     </button>
                 </template>
@@ -233,16 +232,16 @@
         <div class="bg-white p-5 md:p-8 rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto shadow-2xl">
             <div class="flex justify-between items-center mb-6 sticky top-0 bg-white py-2 z-10 border-b">
                 <h3 class="text-xl md:text-2xl font-bold text-gray-800" x-text="editMode ? 'Edit Produk Sin' : 'Tambah Produk Sin'"></h3>
-                <button @click="closeAdminPanel()" class="text-gray-400 hover:text-red-500 transition text-2xl">&times;</button>
+                <button @click="closeAdminPanel()" class="text-gray-400 hover:text-emerald-500 transition text-2xl">&times;</button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-red-50 p-4 rounded-2xl border border-red-100">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-emerald-50/40 p-4 rounded-2xl border border-emerald-100">
                 <input type="text" x-model="form.nama" placeholder="Nama Varian Sin (Contoh: Sin Sapu Jagat)" class="p-2.5 border rounded-lg md:col-span-2 shadow-xs">
                 
-                <div class="md:col-span-2 bg-white p-4 rounded-xl border border-red-200">
+                <div class="md:col-span-2 bg-white p-4 rounded-xl border border-emerald-200">
                     <div class="flex justify-between items-center mb-3">
-                        <label class="text-xs font-bold text-red-700 uppercase tracking-wide">Pengaturan Varian Satuan & Harga</label>
-                        <button type="button" @click="addFormVarian()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                        <label class="text-xs font-bold text-emerald-500 uppercase tracking-wide">Pengaturan Varian Satuan & Harga</label>
+                        <button type="button" @click="addFormVarian()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
                             <i class="fa fa-plus mr-1"></i> Tambah Kolom Varian
                         </button>
                     </div>
@@ -251,7 +250,7 @@
                         <template x-for="(v, index) in form.listVarian" :key="index">
                             <div class="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border">
                                 <input type="text" x-model="v.namaVarian" placeholder="Nama Ukuran (misal: bungkus, pak, slop, bal)" class="flex-1 p-2 border rounded-md text-xs uppercase font-semibold">
-                                <input type="number" x-model.number="v.harga" placeholder="Harga (Rp)" class="w-1/3 p-2 border rounded-md text-xs font-bold text-red-600">
+                                <input type="number" x-model.number="v.harga" placeholder="Harga (Rp)" class="w-1/3 p-2 border rounded-md text-xs font-bold text-emerald-500">
                                 <button type="button" @click="removeFormVarian(index)" class="text-red-500 hover:text-red-700 p-1" x-show="form.listVarian.length > 1">
                                     <i class="fa fa-minus-circle text-lg"></i>
                                 </button>
@@ -268,12 +267,12 @@
                     <option value="Habis">Habis</option>
                 </select>
                 <div class="md:col-span-2">
-                    <label class="text-xs font-bold text-red-700 uppercase">Foto Produk</label>
+                    <label class="text-xs font-bold text-emerald-500 uppercase">Foto Produk</label>
                     <input type="file" id="admFile" accept="image/*" class="w-full p-2 border rounded-lg bg-white mb-2 text-xs">
                     <input type="text" x-model="form.foto" placeholder="Atau tempel link foto di sini" class="p-2.5 border rounded-lg text-xs">
                 </div>
                 <textarea x-model="form.detail" rows="2" placeholder="Deskripsi Khasiat & Kandungan Herbal..." class="p-2.5 border rounded-lg md:col-span-2 text-sm"></textarea>
-                <button @click="saveProduct()" class="md:col-span-2 bg-red-700 text-white py-3.5 rounded-xl font-bold shadow-md hover:bg-red-800 transition uppercase tracking-wide" x-text="editMode ? 'UPDATE DATA SEKARANG' : 'SIMPAN KE CLOUD DATABASE'"></button>
+                <button @click="saveProduct()" class="md:col-span-2 bg-emerald-500 text-white py-3.5 rounded-xl font-bold shadow-md hover:bg-emerald-600 transition uppercase tracking-wide" x-text="editMode ? 'UPDATE DATA SEKARANG' : 'SIMPAN KE CLOUD DATABASE'"></button>
             </div>
             
             <div class="table-responsive bg-white rounded-xl border">
@@ -293,7 +292,7 @@
                                     <div class="flex flex-wrap gap-1.5">
                                         <template x-for="v in (p.listVarian || [{namaVarian: 'bungkus', harga: p.harga || 0}])">
                                             <span class="bg-gray-100 border text-gray-600 px-2 py-0.5 rounded font-medium">
-                                                <span class="uppercase font-bold text-red-700" x-text="v.namaVarian"></span>: <span class="text-red-600 font-bold" x-text="formatRupiah(v.harga)"></span>
+                                                <span class="uppercase font-bold text-emerald-500" x-text="v.namaVarian"></span>: <span class="text-emerald-500 font-bold" x-text="formatRupiah(v.harga)"></span>
                                             </span>
                                         </template>
                                     </div>
@@ -314,7 +313,7 @@
 
     <footer class="bg-white border-t py-12">
         <div class="container mx-auto px-4 text-center">
-            <h1 class="text-xl font-bold text-red-700 mb-6 uppercase tracking-widest">Toko Resmi Sin</h1>
+            <h1 class="text-xl font-bold text-emerald-500 mb-6 uppercase tracking-widest">Toko Resmi Sin</h1>
             <div class="flex justify-center space-x-8 mb-8">
                 <a href="#" class="text-gray-400 hover:text-pink-500 transition text-2xl"><i class="fab fa-instagram"></i></a>
                 <a href="#" class="text-gray-400 hover:text-black transition text-2xl"><i class="fab fa-tiktok"></i></a>
@@ -354,7 +353,7 @@
                 currentVarianName: 'bungkus',
                 currentVarianHarga: 0,
 
-                categories: ['Sin Kretek', 'Sin Filter', 'Sin Cerutu', 'Sin Premium', 'Paket Agen'],
+                categories: ['Sin Kretek', 'Sin Filter', 'Sin Cerutu'],
                 products: [],
                 cart: [],
                 
